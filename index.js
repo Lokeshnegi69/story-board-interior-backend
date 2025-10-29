@@ -30,6 +30,7 @@ import aboutCTARoutes from "./routes/aboutCTARoutes.js";
 import servicePageRoutes from "./routes/servicePageRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js";
 import contactHeroRoutes from "./routes/contactHeroRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 
 dotenv.config();
@@ -77,6 +78,7 @@ app.use("/api/instagram", instagramRoutes);
 app.use("/api/brands", brandLogoRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/subscribers", subscriberRoutes);
+app.use("/api/auth", authRoutes);
 // app.use("/api/featuredprojects", featuredProjectRoutes);
 app.use("/api/testimonial-hero", testimonialHeroRoutes);
 app.use("/api/featured-testimonial", featuredTestimonialRoutes);
