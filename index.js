@@ -14,7 +14,7 @@ import instagramRoutes from "./routes/instagramRoutes.js";
 import brandLogoRoutes from "./routes/brandLogoRoutes.js";
 import testimonialRoutes from "./routes/testimonialRoutes.js";
 import subscriberRoutes from "./routes/subscriberRoutes.js";
-// import featuredProjectRoutes from "./routes/FeaturedProjectRoutes.js";
+import featuredProjectRoutes from "./routes/FeaturedProjectRoutes.js";
 import testimonialHeroRoutes from "./routes/testimonialHeroRoutes.js";
 import featuredTestimonialRoutes from "./routes/featuredTestimonialRoutes.js";
 import beforeAfterTestimonialRoutes from "./routes/beforeAfterTestimonialRoutes.js";
