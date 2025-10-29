@@ -1,5 +1,3 @@
-
-
 import express from "express";
 
 import { addProject, getFeaturedProjects, getProjectById } from "../controllers/featuredProjectController.js";
