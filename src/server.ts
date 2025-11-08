@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 import { errorHandler, notFoundHandler } from './utils/errorHandler';
 import logger from './config/logger';
 import connectDB from './config/database';
-
 import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import categoryRoutes from './routes/categoryRoutes';
