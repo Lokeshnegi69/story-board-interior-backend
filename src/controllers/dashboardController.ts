@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AppError, asyncHandler } from '../utils/errorHandler';
+import { asyncHandler } from '../utils/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import Project from '../models/Project';
 import Inquiry from '../models/Inquiry';
