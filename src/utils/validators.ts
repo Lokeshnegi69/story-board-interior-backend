@@ -102,3 +102,20 @@ export const paginationSchema = Joi.object({
   sortBy: Joi.string(),
   sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
 });
+
+export const designEthosSchema = Joi.object({
+  title: Joi.string().required(),
+  desc: Joi.string().required(),
+  // img is handled by multer, but if updated via body as string url:
+  img: Joi.string().uri(),
+  order: Joi.number().integer().min(0),
+  status: Joi.string().valid('draft', 'published'),
+});
+
+export const serviceSchema = Joi.object({
+  title: Joi.string().required(),
+  desc: Joi.string().required(),
+  icon: Joi.string(),
+  order: Joi.number().integer().min(0),
+  status: Joi.string().valid('draft', 'published'),
+});

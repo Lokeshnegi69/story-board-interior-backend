@@ -15,10 +15,20 @@ import testimonialRoutes from './routes/testimonialRoutes';
 import heroRoutes from './routes/heroRoutes';
 import userRoutes from './routes/userRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import designEthosRoutes from './routes/designEthosRoutes';
+import serviceRoutes from './routes/serviceRoutes'; // Restored
+import serviceDetailRoutes from './routes/serviceDetailRoutes';
+import transformationRoutes from './routes/transformationRoutes';
+import finishRoutes from './routes/finishRoutes'; // Added
+import useCaseRoutes from './routes/useCaseRoutes'; // Added
 
 dotenv.config();
 
 const app: Application = express();
+// ... (omitting middle lines for tool, I must use StartLine/EndLine or multireplace if disjoint)
+
+// Actually, I can't edit top and bottom in one go with standard replace unless I include everything.
+// Let's do imports first.
 const PORT = process.env.PORT || 5000;
 
 const limiter = rateLimit({
@@ -30,25 +40,27 @@ const limiter = rateLimit({
 });
 
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }}
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}
 ));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
+app.set('trust proxy', true);
 
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      process.env.ADMIN_URL || 'http://localhost:3001',
-      'http://localhost:5175', // Vite default
-      'http://localhost:5176'
+      "https://story-board-interior.netlify.app",
+      "https://story-board-interior-admin.netlify.app",
+      'http://localhost:5173', // Vite default
+      'http://localhost:5174'
     ];
-    
+
     // Allow requests with no origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -64,7 +76,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({
     success: true,
     message: 'Interior Design Portfolio API',
@@ -72,7 +84,7 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({
     success: true,
     message: 'Server is healthy',
@@ -88,6 +100,12 @@ app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/hero-sections', heroRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/design-ethos', designEthosRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/transformations', transformationRoutes);
+app.use('/api/service-details', serviceDetailRoutes);
+app.use('/api/finishes', finishRoutes); // Added
+app.use('/api/use-cases', useCaseRoutes); // Added
 
 app.use(notFoundHandler);
 app.use(errorHandler);
