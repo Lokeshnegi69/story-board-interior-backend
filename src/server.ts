@@ -76,7 +76,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 
-app.get('/', (_req, res) => {
+app.get('/', (_req: express.Request, res: express.Response) => {
   res.json({
     success: true,
     message: 'Interior Design Portfolio API',
@@ -84,7 +84,7 @@ app.get('/', (_req, res) => {
   });
 });
 
-app.get('/health', (_req, res) => {
+app.get('/health', (_req: express.Request, res: express.Response) => {
   res.json({
     success: true,
     message: 'Server is healthy',

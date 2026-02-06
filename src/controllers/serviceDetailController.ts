@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../utils/errorHandler';
 import ServiceDetail from '../models/ServiceDetail';
 
-export const getServiceDetails = asyncHandler(async (req: Request, res: Response) => {
+export const getServiceDetails = asyncHandler(async (req: AuthRequest, res: Response) => {
     const items = await ServiceDetail.find().sort({ display_order: 1 });
     res.json({ success: true, data: items });
 });
 
-export const createServiceDetail = asyncHandler(async (req: Request, res: Response) => {
+export const createServiceDetail = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { title, description_1, description_2, type, display_order, image_position } = req.body;
     const image = req.file?.path;
 
@@ -29,12 +30,12 @@ export const createServiceDetail = asyncHandler(async (req: Request, res: Respon
     res.status(201).json({ success: true, data: item });
 });
 
-export const deleteServiceDetail = asyncHandler(async (req: Request, res: Response) => {
+export const deleteServiceDetail = asyncHandler(async (req: AuthRequest, res: Response) => {
     await ServiceDetail.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Deleted' });
 });
 
-export const updateServiceDetail = asyncHandler(async (req: Request, res: Response) => {
+export const updateServiceDetail = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { title, description_1, description_2, type, display_order, image_position } = req.body;
 

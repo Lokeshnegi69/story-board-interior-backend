@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { asyncHandler } from '../utils/errorHandler';
 import UseCase from '../models/UseCase';
+import { AuthRequest } from '../middleware/auth';
 
-export const getUseCases = asyncHandler(async (_req: Request, res: Response) => {
+export const getUseCases = asyncHandler(async (_req: AuthRequest, res: Response) => {
     const items = await UseCase.find().sort({ display_order: 1 });
     res.json({ success: true, data: items });
 });
 
-export const createUseCase = asyncHandler(async (req: Request, res: Response) => {
+export const createUseCase = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { title, display_order } = req.body;
     const image = req.file?.path;
 
@@ -25,7 +26,7 @@ export const createUseCase = asyncHandler(async (req: Request, res: Response) =>
     res.status(201).json({ success: true, data: item });
 });
 
-export const updateUseCase = asyncHandler(async (req: Request, res: Response) => {
+export const updateUseCase = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { title, display_order } = req.body;
 
@@ -48,7 +49,7 @@ export const updateUseCase = asyncHandler(async (req: Request, res: Response) =>
     res.json({ success: true, data: item });
 });
 
-export const deleteUseCase = asyncHandler(async (req: Request, res: Response) => {
+export const deleteUseCase = asyncHandler(async (req: AuthRequest, res: Response) => {
     await UseCase.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Deleted' });
 });

@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { asyncHandler } from '../utils/errorHandler';
 import Finish from '../models/Finish';
+import { AuthRequest } from '../middleware/auth';
 
-export const getFinishes = asyncHandler(async (_req: Request, res: Response) => {
+export const getFinishes = asyncHandler(async (_req: AuthRequest, res: Response) => {
     const items = await Finish.find().sort({ display_order: 1 });
     res.json({ success: true, data: items });
 });
 
-export const createFinish = asyncHandler(async (req: Request, res: Response) => {
+export const createFinish = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { title, description, display_order } = req.body;
     const image = req.file?.path;
 
@@ -26,7 +27,7 @@ export const createFinish = asyncHandler(async (req: Request, res: Response) => 
     res.status(201).json({ success: true, data: item });
 });
 
-export const updateFinish = asyncHandler(async (req: Request, res: Response) => {
+export const updateFinish = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { title, description, display_order } = req.body;
 
@@ -50,7 +51,7 @@ export const updateFinish = asyncHandler(async (req: Request, res: Response) => 
     res.json({ success: true, data: item });
 });
 
-export const deleteFinish = asyncHandler(async (req: Request, res: Response) => {
+export const deleteFinish = asyncHandler(async (req: AuthRequest, res: Response) => {
     await Finish.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Deleted' });
 });

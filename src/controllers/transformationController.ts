@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { asyncHandler } from '../utils/errorHandler';
 import Transformation from '../models/Transformation';
+import { AuthRequest } from '../middleware/auth';
 
-export const getTransformations = asyncHandler(async (_req: Request, res: Response) => {
+export const getTransformations = asyncHandler(async (_req: AuthRequest, res: Response) => {
     const items = await Transformation.find().sort({ display_order: 1 });
     res.json({ success: true, data: items });
 });
 
-export const createTransformation = asyncHandler(async (req: Request, res: Response) => {
+export const createTransformation = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { title, description, display_order, is_published } = req.body;
 
     // Handle multiple file uploads
@@ -34,7 +35,7 @@ export const createTransformation = asyncHandler(async (req: Request, res: Respo
     res.status(201).json({ success: true, data: item });
 });
 
-export const updateTransformation = asyncHandler(async (req: Request, res: Response) => {
+export const updateTransformation = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { title, description, display_order, is_published } = req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -59,7 +60,7 @@ export const updateTransformation = asyncHandler(async (req: Request, res: Respo
     res.json({ success: true, data: item });
 });
 
-export const deleteTransformation = asyncHandler(async (req: Request, res: Response) => {
+export const deleteTransformation = asyncHandler(async (req: AuthRequest, res: Response) => {
     await Transformation.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Deleted successfully' });
 });

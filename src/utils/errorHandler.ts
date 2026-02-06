@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import logger from '../config/logger';
 
 export class AppError extends Error {
@@ -15,7 +16,7 @@ export class AppError extends Error {
 
 export const errorHandler = (
   err: Error | AppError,
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -52,7 +53,7 @@ export const errorHandler = (
   }
 };
 
-export const notFoundHandler = (req: Request, res: Response) => {
+export const notFoundHandler = (req: AuthRequest, res: Response) => {
   res.status(404).json({
     success: false,
     error: `Route ${req.originalUrl} not found`,
@@ -60,9 +61,9 @@ export const notFoundHandler = (req: Request, res: Response) => {
 };
 
 export const asyncHandler = (
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+  fn: (req: AuthRequest, res: Response, next: NextFunction) => Promise<any>
 ) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 };
