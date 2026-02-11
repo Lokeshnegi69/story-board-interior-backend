@@ -125,14 +125,72 @@ const createProject = asyncHandler(async (req, res) => {
 const updateProject = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const project = await Project.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  let project = await Project.findById(id);
 
   if (!project) {
     throw new AppError('Project not found', 404);
   }
+
+  // Handle image upload
+  if (req.file) {
+    const newImage = {
+      image_url: req.file.path,
+      cloudinary_id: req.file.filename,
+      caption: req.body.image_caption || '',
+      display_order: 0,
+      is_primary: true,
+    };
+
+    // Find existing primary image to replace
+    const primaryImageIndex = project.images.findIndex((img) => img.is_primary);
+
+    if (primaryImageIndex !== -1) {
+      const oldImage = project.images[primaryImageIndex];
+      if (oldImage.cloudinary_id) {
+        try {
+          await deleteFromCloudinary(oldImage.cloudinary_id);
+        } catch (error) {
+          console.error('Error deleting old image from Cloudinary:', error);
+        }
+      }
+      // Replace the old image
+      project.images[primaryImageIndex] = newImage;
+    } else {
+      // Add as new primary image
+      project.images.push(newImage);
+    }
+  }
+
+  // Update other fields
+  const fieldsToUpdate = [
+    'title',
+    'description',
+    'client_name',
+    'location',
+    'area_sqft',
+    'completion_date',
+    'category_id',
+    'status',
+    'featured',
+    'display_order',
+    'thumbnail_url',
+  ];
+
+  fieldsToUpdate.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      project[field] = req.body[field];
+    }
+  });
+
+  // Update slug if title changed
+  if (req.body.title) {
+    project.slug = req.body.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  await project.save();
 
   res.json({
     success: true,

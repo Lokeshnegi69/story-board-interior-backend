@@ -42,6 +42,7 @@ const projectSchema = Joi.object({
     featured: Joi.boolean(),
     thumbnail_url: Joi.string().uri(),
     display_order: Joi.number().integer().min(0),
+    image_caption: Joi.string().max(500),
 });
 
 const projectImageSchema = Joi.object({
