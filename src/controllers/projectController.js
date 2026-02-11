@@ -133,6 +133,7 @@ const updateProject = asyncHandler(async (req, res) => {
 
   // Handle image upload
   if (req.file) {
+    console.log(req.file);
     const newImage = {
       image_url: req.file.path,
       cloudinary_id: req.file.filename,
@@ -140,25 +141,16 @@ const updateProject = asyncHandler(async (req, res) => {
       display_order: 0,
       is_primary: true,
     };
-
-    // Find existing primary image to replace
-    const primaryImageIndex = project.images.findIndex((img) => img.is_primary);
-
-    if (primaryImageIndex !== -1) {
-      const oldImage = project.images[primaryImageIndex];
-      if (oldImage.cloudinary_id) {
-        try {
-          await deleteFromCloudinary(oldImage.cloudinary_id);
-        } catch (error) {
-          console.error('Error deleting old image from Cloudinary:', error);
-        }
+    const oldImage = project.images[0];
+    if (oldImage.cloudinary_id) {
+      try {
+        await deleteFromCloudinary(oldImage.cloudinary_id);
+      } catch (error) {
+        console.error('Error deleting old image from Cloudinary:', error);
       }
-      // Replace the old image
-      project.images[primaryImageIndex] = newImage;
-    } else {
-      // Add as new primary image
-      project.images.push(newImage);
     }
+    // Replace the old image
+    project.images[0] = newImage;
   }
 
   // Update other fields
