@@ -5,7 +5,7 @@ const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinar
 const Project = require('../models/Project');
 
 const getAllProjects = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, status, category_id, featured } = req.query;
+  const { page = 1, limit = 20, status, category_id, featured } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
 
   const query = {};
