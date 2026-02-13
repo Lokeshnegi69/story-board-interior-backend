@@ -49,8 +49,8 @@ const corsOptions = {
         const allowedOrigins = [
             "https://story-board-interior.netlify.app",
             "https://story-board-interior-admin.netlify.app",
-            'http://localhost:5173', // Vite default
-            'http://localhost:5174'
+            'http://localhost:5174', // Vite default
+            'http://localhost:5173'
         ];
 
         // Allow requests with no origin (mobile apps, etc.)
