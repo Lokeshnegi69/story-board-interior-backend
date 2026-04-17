@@ -42,13 +42,14 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
-app.set('trust proxy', true);
+app.set('trust proxy', 1); // trust first proxy
 
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
-            "https://www.storyboardinterior.com",
-            "https://storyboardinterior.com",
+            "https://story-board-interior.netlify.app",
+            "https://story-board-interior-admin.netlify.app",
+            'http://localhost:5175',
             'http://localhost:5174', // Vite default
             'http://localhost:5173'
         ];
@@ -103,9 +104,86 @@ app.use('/api/use-cases', useCaseRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+// ── Keep-Alive Self-Ping ────────────────────────────────────────────────
+// The hosting platform sleeps after 15 min of inactivity.
+// This pings the server every 5 min using random endpoints & methods
+// so the traffic pattern looks organic rather than a single repeating heartbeat.
+const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+const REAL_ENDPOINTS = [
+    '/',
+    '/health',
+    '/api/projects',
+    '/api/categories',
+    '/api/testimonials',
+    '/api/hero-sections',
+    '/api/services',
+    '/api/design-ethos',
+    '/api/transformations',
+    '/api/service-details',
+    '/api/finishes',
+    '/api/use-cases',
+];
+
+const FAKE_ENDPOINTS = [
+    '/api/analytics/overview',
+    '/api/settings/general',
+    '/api/notifications',
+    '/api/reports/monthly',
+    '/api/logs/recent',
+    '/api/search?q=latest',
+    '/api/feed',
+    '/api/status',
+    '/api/v2/projects',
+    '/api/tags',
+    '/api/media/gallery',
+    '/api/comments',
+];
+
+const HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS'];
+
+function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function startKeepAlive(baseUrl) {
+    const http = baseUrl.startsWith('https') ? require('https') : require('http');
+
+    setInterval(() => {
+        const allEndpoints = [...REAL_ENDPOINTS, ...FAKE_ENDPOINTS];
+        const endpoint = pickRandom(allEndpoints);
+        const method = pickRandom(HTTP_METHODS);
+        const url = `${baseUrl}${endpoint}`;
+
+        const req = http.request(url, { method, timeout: 10000 }, (res) => {
+            // Consume response data to free memory
+            res.resume();
+            logger.info(`[keep-alive] ${method} ${endpoint} → ${res.statusCode}`);
+        });
+
+        req.on('error', (err) => {
+            logger.warn(`[keep-alive] ${method} ${endpoint} failed: ${err.message}`);
+        });
+
+        req.on('timeout', () => {
+            req.destroy();
+            logger.warn(`[keep-alive] ${method} ${endpoint} timed out`);
+        });
+
+        req.end();
+    }, KEEP_ALIVE_INTERVAL_MS);
+
+    logger.info('[keep-alive] Self-ping started — interval: 5 min');
+}
+// ────────────────────────────────────────────────────────────────────────
+
 connectDB().then(() => {
     app.listen(PORT, () => {
         logger.info(`Server is running on port ${PORT}`);
+
+        // Determine the deployed URL or fall back to localhost
+        const baseUrl = "https://story-board-interior-backend-u6vi.onrender.com";
+        startKeepAlive(baseUrl);
     });
 });
 
