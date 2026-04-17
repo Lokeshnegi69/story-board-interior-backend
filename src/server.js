@@ -47,8 +47,8 @@ app.set('trust proxy', true);
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
-            "https://story-board-interior.netlify.app",
-            "https://story-board-interior-admin.netlify.app",
+            "https://www.storyboardinterior.com",
+            "https://storyboardinterior.com",
             'http://localhost:5174', // Vite default
             'http://localhost:5173'
         ];
