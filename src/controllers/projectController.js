@@ -215,6 +215,11 @@ const updateProject = asyncHandler(async (req, res) => {
         value = null;
       }
 
+      // Handle numeric conversion
+      if (field === 'area_sqft' || field === 'display_order') {
+        value = value === "" || value === null ? null : Number(value);
+      }
+
       project[field] = value;
     }
   });
@@ -365,13 +370,19 @@ const uploadSectionImage = asyncHandler(async (req, res) => {
     throw new AppError('Maximum 5 section images allowed', 400);
   }
 
+  const nextIndex = project.section_images.length;
   project.section_images.push({
     image_url: file.path,
     cloudinary_id: file.filename,
-    display_order: project.section_images.length,
+    display_order: nextIndex,
   });
 
-  await project.save();
+  try {
+    await project.save();
+  } catch (err) {
+    console.error('Error saving project after section image upload:', err);
+    throw new AppError(`Failed to save project: ${err.message}`, 500);
+  }
 
   res.status(201).json({
     success: true,
@@ -398,13 +409,19 @@ const uploadCarouselImage = asyncHandler(async (req, res) => {
     project.carousel_images = [];
   }
 
+  const nextIndex = project.carousel_images.length;
   project.carousel_images.push({
     image_url: file.path,
     cloudinary_id: file.filename,
-    display_order: project.carousel_images.length,
+    display_order: nextIndex,
   });
 
-  await project.save();
+  try {
+    await project.save();
+  } catch (err) {
+    console.error('Error saving project after carousel image upload:', err);
+    throw new AppError(`Failed to save project: ${err.message}`, 500);
+  }
 
   res.status(201).json({
     success: true,
