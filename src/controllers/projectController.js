@@ -359,27 +359,28 @@ const uploadSectionImage = asyncHandler(async (req, res) => {
     throw new AppError('No image file provided', 400);
   }
 
-  const projectForCount = await Project.findById(id);
-  if (!projectForCount) {
+  const project = await Project.findById(id);
+  if (!project) {
     throw new AppError('Project not found', 404);
   }
 
-  if (projectForCount.section_images && projectForCount.section_images.length >= 5) {
+  if (!project.section_images) {
+    project.section_images = [];
+  }
+
+  if (project.section_images.length >= 5) {
     throw new AppError('Maximum 5 section images allowed', 400);
   }
 
-  const nextIndex = projectForCount.section_images ? projectForCount.section_images.length : 0;
+  const nextIndex = project.section_images.length;
   const newSectionImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
   };
 
-  const project = await Project.findByIdAndUpdate(
-    id,
-    { $push: { section_images: newSectionImage } },
-    { new: true, runValidators: false }
-  );
+  project.section_images.push(newSectionImage);
+  await project.save({ validateBeforeSave: false });
 
   res.status(201).json({
     success: true,
@@ -396,23 +397,24 @@ const uploadCarouselImage = asyncHandler(async (req, res) => {
     throw new AppError('No image file provided', 400);
   }
 
-  const projectForCount = await Project.findById(id);
-  if (!projectForCount) {
+  const project = await Project.findById(id);
+  if (!project) {
     throw new AppError('Project not found', 404);
   }
 
-  const nextIndex = projectForCount.carousel_images ? projectForCount.carousel_images.length : 0;
+  if (!project.carousel_images) {
+    project.carousel_images = [];
+  }
+
+  const nextIndex = project.carousel_images.length;
   const newCarouselImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
   };
 
-  const project = await Project.findByIdAndUpdate(
-    id,
-    { $push: { carousel_images: newCarouselImage } },
-    { new: true, runValidators: false }
-  );
+  project.carousel_images.push(newCarouselImage);
+  await project.save({ validateBeforeSave: false });
 
   res.status(201).json({
     success: true,
