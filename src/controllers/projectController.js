@@ -291,25 +291,28 @@ const uploadProjectImage = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  // Ensure images array exists
-  if (!project.images) {
-    project.images = [];
-  }
-
-  project.images.push({
+  const newImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     caption,
     display_order: display_order || 0,
     is_primary: is_primary === 'true' || is_primary === true,
-  });
+  };
 
-  await project.save();
+  const updatedProject = await Project.findByIdAndUpdate(
+    project_id,
+    { $push: { images: newImage } },
+    { new: true, runValidators: false }
+  );
+
+  if (!updatedProject) {
+    throw new AppError('Project not found', 404);
+  }
 
   res.status(201).json({
     success: true,
     message: 'Image uploaded successfully',
-    data: project.images[project.images.length - 1],
+    data: updatedProject.images[updatedProject.images.length - 1],
   });
 });
 
@@ -356,33 +359,27 @@ const uploadSectionImage = asyncHandler(async (req, res) => {
     throw new AppError('No image file provided', 400);
   }
 
-  const project = await Project.findById(id);
-  if (!project) {
+  const projectForCount = await Project.findById(id);
+  if (!projectForCount) {
     throw new AppError('Project not found', 404);
   }
 
-  // Ensure section_images array exists
-  if (!project.section_images) {
-    project.section_images = [];
-  }
-
-  if (project.section_images.length >= 5) {
+  if (projectForCount.section_images && projectForCount.section_images.length >= 5) {
     throw new AppError('Maximum 5 section images allowed', 400);
   }
 
-  const nextIndex = project.section_images.length;
-  project.section_images.push({
+  const nextIndex = projectForCount.section_images ? projectForCount.section_images.length : 0;
+  const newSectionImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
-  });
+  };
 
-  try {
-    await project.save();
-  } catch (err) {
-    console.error('Error saving project after section image upload:', err);
-    throw new AppError(`Failed to save project: ${err.message}`, 500);
-  }
+  const project = await Project.findByIdAndUpdate(
+    id,
+    { $push: { section_images: newSectionImage } },
+    { new: true, runValidators: false }
+  );
 
   res.status(201).json({
     success: true,
@@ -399,29 +396,23 @@ const uploadCarouselImage = asyncHandler(async (req, res) => {
     throw new AppError('No image file provided', 400);
   }
 
-  const project = await Project.findById(id);
-  if (!project) {
+  const projectForCount = await Project.findById(id);
+  if (!projectForCount) {
     throw new AppError('Project not found', 404);
   }
 
-  // Ensure carousel_images array exists
-  if (!project.carousel_images) {
-    project.carousel_images = [];
-  }
-
-  const nextIndex = project.carousel_images.length;
-  project.carousel_images.push({
+  const nextIndex = projectForCount.carousel_images ? projectForCount.carousel_images.length : 0;
+  const newCarouselImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
-  });
+  };
 
-  try {
-    await project.save();
-  } catch (err) {
-    console.error('Error saving project after carousel image upload:', err);
-    throw new AppError(`Failed to save project: ${err.message}`, 500);
-  }
+  const project = await Project.findByIdAndUpdate(
+    id,
+    { $push: { carousel_images: newCarouselImage } },
+    { new: true, runValidators: false }
+  );
 
   res.status(201).json({
     success: true,
