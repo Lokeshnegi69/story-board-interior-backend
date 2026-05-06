@@ -109,6 +109,11 @@ const createProject = asyncHandler(async (req, res) => {
     }];
   }
 
+  // Handle empty category_id
+  if (projectData.category_id === "") {
+    projectData.category_id = null;
+  }
+
   const project = await Project.create({
     ...projectData,
     slug,
@@ -124,6 +129,7 @@ const createProject = asyncHandler(async (req, res) => {
 
 const updateProject = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  console.log('Updating project:', id, req.body);
 
   let project = await Project.findById(id);
 
@@ -131,9 +137,8 @@ const updateProject = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  // Handle image upload
+  // Handle main project image upload
   if (req.file) {
-    console.log(req.file);
     const newImage = {
       image_url: req.file.path,
       cloudinary_id: req.file.filename,
@@ -141,22 +146,31 @@ const updateProject = asyncHandler(async (req, res) => {
       display_order: 0,
       is_primary: true,
     };
-    const oldImage = project.images[0];
-    if (oldImage.cloudinary_id) {
+
+    const oldImage = project.images && project.images.length > 0 ? project.images[0] : null;
+    if (oldImage && oldImage.cloudinary_id) {
       try {
         await deleteFromCloudinary(oldImage.cloudinary_id);
       } catch (error) {
         console.error('Error deleting old image from Cloudinary:', error);
       }
     }
-    // Replace the old image
-    project.images[0] = newImage;
+
+    // Replace or add the first image
+    if (project.images && project.images.length > 0) {
+      const restImages = project.images.slice(1);
+      project.images = [newImage, ...restImages];
+    } else {
+      project.images = [newImage];
+    }
   }
 
-  // Update other fields
+  // Fields to update
   const fieldsToUpdate = [
     'title',
     'description',
+    'section_heading',
+    'section_description',
     'client_name',
     'location',
     'area_sqft',
@@ -164,13 +178,31 @@ const updateProject = asyncHandler(async (req, res) => {
     'category_id',
     'status',
     'featured',
+    'visible',
+    'tags',
     'display_order',
     'thumbnail_url',
   ];
 
   fieldsToUpdate.forEach((field) => {
     if (req.body[field] !== undefined) {
-      project[field] = req.body[field];
+      let value = req.body[field];
+
+      // Handle string to boolean conversion from FormData
+      if (value === 'true') value = true;
+      if (value === 'false') value = false;
+
+      // Handle tags string to array
+      if (field === 'tags' && typeof value === 'string') {
+        value = value.split(',').map(tag => tag.trim()).filter(Boolean);
+      }
+
+      // Handle empty category_id and completion_date
+      if ((field === 'category_id' || field === 'completion_date') && value === "") {
+        value = null;
+      }
+
+      project[field] = value;
     }
   });
 
@@ -222,24 +254,18 @@ const uploadProjectImage = asyncHandler(async (req, res) => {
     throw new AppError('No image file provided', 400);
   }
 
-  const result = await uploadToCloudinary(
-    `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
-    'projects'
-  );
-
   const project = await Project.findById(project_id);
 
   if (!project) {
-    await deleteFromCloudinary(result.public_id);
     throw new AppError('Project not found', 404);
   }
 
   project.images.push({
-    image_url: result.secure_url,
-    cloudinary_id: result.public_id,
+    image_url: file.path,
+    cloudinary_id: file.filename,
     caption,
     display_order: display_order || 0,
-    is_primary: is_primary || false,
+    is_primary: is_primary === 'true' || is_primary === true,
   });
 
   await project.save();
@@ -282,6 +308,145 @@ const deleteProjectImage = asyncHandler(async (req, res) => {
 });
 
 
+const uploadSectionImage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+
+  if (!file) {
+    throw new AppError('No image file provided', 400);
+  }
+
+  const project = await Project.findById(id);
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  if (project.section_images && project.section_images.length >= 5) {
+    throw new AppError('Maximum 5 section images allowed', 400);
+  }
+
+  project.section_images.push({
+    image_url: file.path,
+    cloudinary_id: file.filename,
+    display_order: project.section_images.length,
+  });
+
+  await project.save();
+
+  res.status(201).json({
+    success: true,
+    message: 'Section image uploaded successfully',
+    data: project.section_images,
+  });
+});
+
+const uploadCarouselImage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+
+  if (!file) {
+    throw new AppError('No image file provided', 400);
+  }
+
+  const project = await Project.findById(id);
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  project.carousel_images.push({
+    image_url: file.path,
+    cloudinary_id: file.filename,
+    display_order: project.carousel_images.length,
+  });
+
+  await project.save();
+
+  res.status(201).json({
+    success: true,
+    message: 'Carousel image uploaded successfully',
+    data: project.carousel_images,
+  });
+});
+
+const deleteCarouselImage = asyncHandler(async (req, res) => {
+  const { id, imageId } = req.params;
+
+  const project = await Project.findById(id);
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  const imageIndex = project.carousel_images.findIndex(
+    (img) => img._id.toString() === imageId
+  );
+
+  if (imageIndex === -1) {
+    throw new AppError('Image not found in project', 404);
+  }
+
+  const image = project.carousel_images[imageIndex];
+
+  if (image.cloudinary_id) {
+    await deleteFromCloudinary(image.cloudinary_id);
+  }
+
+  project.carousel_images.splice(imageIndex, 1);
+
+  // Reorder
+  project.carousel_images.forEach((img, index) => {
+    img.display_order = index;
+  });
+
+  await project.save();
+
+  res.json({
+    success: true,
+    message: 'Carousel image deleted successfully',
+    data: project.carousel_images,
+  });
+});
+
+const deleteSectionImage = asyncHandler(async (req, res) => {
+  const { id, imageId } = req.params;
+
+  const project = await Project.findById(id);
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  const imageIndex = project.section_images.findIndex(
+    (img) => img._id.toString() === imageId
+  );
+
+  if (imageIndex === -1) {
+    throw new AppError('Section image not found', 404);
+  }
+
+  const image = project.section_images[imageIndex];
+  if (image.cloudinary_id) {
+    try {
+      await deleteFromCloudinary(image.cloudinary_id);
+    } catch (error) {
+      console.error('Error deleting section image from Cloudinary:', error);
+    }
+  }
+
+  project.section_images.splice(imageIndex, 1);
+  // Reorder remaining images
+  project.section_images.forEach((img, idx) => {
+    img.display_order = idx;
+  });
+
+  await project.save();
+
+  res.json({
+    success: true,
+    message: 'Section image deleted successfully',
+    data: project.section_images,
+  });
+});
+
+
 module.exports = {
   getAllProjects,
   getProjectById,
@@ -291,4 +456,8 @@ module.exports = {
   deleteProject,
   uploadProjectImage,
   deleteProjectImage,
+  uploadSectionImage,
+  deleteSectionImage,
+  uploadCarouselImage,
+  deleteCarouselImage,
 };
