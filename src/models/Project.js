@@ -120,20 +120,26 @@ const ProjectSchema = new Schema(
       type: String,
     },
     images: [ProjectImageSchema],
-    section_images: [
-      {
-        image_url: String,
-        cloudinary_id: String,
-        display_order: Number,
-      },
-    ],
-    carousel_images: [
-      {
-        image_url: String,
-        cloudinary_id: String,
-        display_order: Number,
-      },
-    ],
+    section_images: {
+      type: [
+        {
+          image_url: String,
+          cloudinary_id: String,
+          display_order: Number,
+        },
+      ],
+      default: [],
+    },
+    carousel_images: {
+      type: [
+        {
+          image_url: String,
+          cloudinary_id: String,
+          display_order: Number,
+        },
+      ],
+      default: [],
+    },
     display_order: {
       type: Number,
       default: 0,
