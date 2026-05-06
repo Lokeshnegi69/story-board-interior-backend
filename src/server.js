@@ -49,6 +49,7 @@ const corsOptions = {
         const allowedOrigins = [
             "https://storyboardinterior.com",
             "https://www.storyboardinterior.com",
+            "https://story-board-interior-admin.netlify.app"
             'http://localhost:5175',
             'http://localhost:5174', // Vite default
             'http://localhost:5173'
