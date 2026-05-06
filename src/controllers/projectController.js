@@ -97,17 +97,21 @@ const createProject = asyncHandler(async (req, res) => {
   let images = [];
 
   if (uploadedFile) {
-    // Assuming you're using Cloudinary
-    const result = uploadedFile.path;
-
     images = [{
-      image_url: result,
-      cloudinary_id: result,
+      image_url: uploadedFile.path,
+      cloudinary_id: uploadedFile.filename,
       caption: projectData.image_caption || '',
       display_order: 0,
       is_primary: true,
     }];
   }
+
+  // Handle boolean conversion from FormData
+  if (projectData.featured === 'true') projectData.featured = true;
+  if (projectData.featured === 'false') projectData.featured = false;
+  if (projectData.visible === 'true') projectData.visible = true;
+  if (projectData.visible === 'false') projectData.visible = false;
+
 
   // Handle empty category_id
   if (projectData.category_id === "") {
@@ -147,7 +151,12 @@ const updateProject = asyncHandler(async (req, res) => {
       is_primary: true,
     };
 
-    const oldImage = project.images && project.images.length > 0 ? project.images[0] : null;
+    // Ensure project.images is an array
+    if (!project.images) {
+      project.images = [];
+    }
+
+    const oldImage = project.images.length > 0 ? project.images[0] : null;
     if (oldImage && oldImage.cloudinary_id) {
       try {
         await deleteFromCloudinary(oldImage.cloudinary_id);
@@ -157,7 +166,7 @@ const updateProject = asyncHandler(async (req, res) => {
     }
 
     // Replace or add the first image
-    if (project.images && project.images.length > 0) {
+    if (project.images.length > 0) {
       const restImages = project.images.slice(1);
       project.images = [newImage, ...restImages];
     } else {
@@ -278,9 +287,9 @@ const uploadProjectImage = asyncHandler(async (req, res) => {
 });
 
 const deleteProjectImage = asyncHandler(async (req, res) => {
-  const { projectId, imageId } = req.params;
+  const { id, imageId } = req.params;
 
-  const project = await Project.findById(projectId);
+  const project = await Project.findById(id);
 
   if (!project) {
     throw new AppError('Project not found', 404);
