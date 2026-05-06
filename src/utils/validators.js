@@ -32,18 +32,23 @@ const categorySchema = Joi.object({
 const projectSchema = Joi.object({
     title: Joi.string().min(2).max(200),
     slug: Joi.string().min(2).max(200),
-    description: Joi.string().max(5000),
-    client_name: Joi.string().max(100),
-    location: Joi.string().max(200),
-    area_sqft: Joi.number().positive(),
-    completion_date: Joi.date(),
-    category_id: Joi.string().uuid(),
+    description: Joi.string().max(5000).allow('', null),
+    section_heading: Joi.string().allow('', null),
+    section_description: Joi.string().allow('', null),
+    client_name: Joi.string().max(100).allow('', null),
+    location: Joi.string().max(200).allow('', null),
+    area_sqft: Joi.number().positive().allow(null),
+    completion_date: Joi.date().allow(null),
+    category_id: Joi.string().allow('', null),
+    category: Joi.string().allow('', null),
     status: Joi.string().valid('draft', 'published', 'archived'),
-    featured: Joi.boolean(),
-    thumbnail_url: Joi.string().uri(),
+    featured: Joi.any(),
+    visible: Joi.any(),
+    tags: Joi.any(),
+    thumbnail_url: Joi.string().uri().allow('', null),
     display_order: Joi.number().integer().min(0),
-    image_caption: Joi.string().max(500),
-});
+    image_caption: Joi.string().max(500).allow('', null),
+}).unknown(true);
 
 const projectImageSchema = Joi.object({
     project_id: Joi.string().uuid().required(),
@@ -110,7 +115,8 @@ const designEthosSchema = Joi.object({
 const serviceSchema = Joi.object({
     title: Joi.string().required(),
     desc: Joi.string().required(),
-    icon: Joi.string(),
+    icon: Joi.string().allow('', null),
+    image: Joi.string().allow('', null),
     order: Joi.number().integer().min(0),
     status: Joi.string().valid('draft', 'published'),
 });
