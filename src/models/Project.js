@@ -73,6 +73,14 @@ const ProjectSchema = new Schema(
       type: String,
       trim: true,
     },
+    section_heading: {
+      type: String,
+      trim: true,
+    },
+    section_description: {
+      type: String,
+      trim: true,
+    },
     client_name: {
       type: String,
       trim: true,
@@ -100,10 +108,32 @@ const ProjectSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    visible: {
+      type: Boolean,
+      default: true,
+    },
+    tags: [{
+      type: String,
+      trim: true,
+    }],
     thumbnail_url: {
       type: String,
     },
     images: [ProjectImageSchema],
+    section_images: [
+      {
+        image_url: String,
+        cloudinary_id: String,
+        display_order: Number,
+      },
+    ],
+    carousel_images: [
+      {
+        image_url: String,
+        cloudinary_id: String,
+        display_order: Number,
+      },
+    ],
     display_order: {
       type: Number,
       default: 0,
@@ -118,7 +148,7 @@ const ProjectSchema = new Schema(
   }
 );
 
-ProjectSchema.index({ slug: 1 });
+// ProjectSchema.index({ slug: 1 });
 ProjectSchema.index({ category_id: 1 });
 ProjectSchema.index({ status: 1 });
 ProjectSchema.index({ featured: 1 });
