@@ -38,7 +38,9 @@ const errorHandler = (err, req, res, next) => {
     } else {
         res.status(statusCode).json({
             success: false,
-            error: isOperational ? message : 'Something went wrong',
+            error: isOperational ? message : err.message || 'Something went wrong',
+            stack: err.stack,
+            details: err,
         });
     }
 };
