@@ -5,8 +5,8 @@ const cloudinary = require("../config/cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
-    folder: "interior designs", // Folder name in Cloudinary
-    allowed_formats: ["webp"],
+    folder: "interior_designs",
+    resource_type: "auto",
     public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
   }),
 });
