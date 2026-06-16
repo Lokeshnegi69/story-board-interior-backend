@@ -364,28 +364,28 @@ const uploadSectionImage = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  if (!project.section_images) {
-    project.section_images = [];
-  }
+  const nextIndex = project.section_images ? project.section_images.length : 0;
 
-  if (project.section_images.length >= 5) {
+  if (nextIndex >= 5) {
     throw new AppError('Maximum 5 section images allowed', 400);
   }
 
-  const nextIndex = project.section_images.length;
   const newSectionImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
   };
 
-  project.section_images.push(newSectionImage);
-  await project.save({ validateBeforeSave: false });
+  const updatedProject = await Project.findByIdAndUpdate(
+    id,
+    { $push: { section_images: newSectionImage } },
+    { new: true, runValidators: false }
+  );
 
   res.status(201).json({
     success: true,
     message: 'Section image uploaded successfully',
-    data: project.section_images,
+    data: updatedProject.section_images,
   });
 });
 
@@ -402,24 +402,24 @@ const uploadCarouselImage = asyncHandler(async (req, res) => {
     throw new AppError('Project not found', 404);
   }
 
-  if (!project.carousel_images) {
-    project.carousel_images = [];
-  }
-
-  const nextIndex = project.carousel_images.length;
+  const nextIndex = project.carousel_images ? project.carousel_images.length : 0;
+  
   const newCarouselImage = {
     image_url: file.path,
     cloudinary_id: file.filename,
     display_order: nextIndex,
   };
 
-  project.carousel_images.push(newCarouselImage);
-  await project.save({ validateBeforeSave: false });
+  const updatedProject = await Project.findByIdAndUpdate(
+    id,
+    { $push: { carousel_images: newCarouselImage } },
+    { new: true, runValidators: false }
+  );
 
   res.status(201).json({
     success: true,
     message: 'Carousel image uploaded successfully',
-    data: project.carousel_images,
+    data: updatedProject.carousel_images,
   });
 });
 
