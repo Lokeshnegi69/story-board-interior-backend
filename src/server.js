@@ -110,7 +110,7 @@ app.use(errorHandler);
 // The hosting platform sleeps after 15 min of inactivity.
 // This pings the server every 5 min using random endpoints & methods
 // so the traffic pattern looks organic rather than a single repeating heartbeat.
-const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const KEEP_ALIVE_INTERVAL_MS = 2 * 60 * 1000; // 5 minutes
 
 const REAL_ENDPOINTS = [
     '/',
@@ -175,7 +175,7 @@ function startKeepAlive(baseUrl) {
         req.end();
     }, KEEP_ALIVE_INTERVAL_MS);
 
-    logger.info('[keep-alive] Self-ping started — interval: 5 min');
+    logger.info('[keep-alive] Self-ping started — interval: 2 min');
 }
 // ────────────────────────────────────────────────────────────────────────
 
